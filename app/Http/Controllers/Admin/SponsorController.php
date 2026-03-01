@@ -6,11 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreSponsorRequest;
 use App\Http\Requests\Admin\UpdateSponsorRequest;
 use App\Models\Sponsor;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class SponsorController extends Controller
 {
+    public function __construct(private readonly AuditLogService $auditLog)
+    {
+    }
+
     public function index(): JsonResponse
     {
         $sponsors = Sponsor::query()
@@ -37,6 +43,14 @@ class SponsorController extends Controller
             'ends_at' => $data['ends_at'] ?? null,
         ]);
 
+        $this->auditLog->record(
+            $request,
+            'sponsor.created',
+            $sponsor,
+            metadata: ['name' => $sponsor->name, 'placement' => $sponsor->placement],
+            newValues: $sponsor->toArray(),
+        );
+
         return response()->json([
             'message' => 'Patrocinador criado com sucesso.',
             'data' => $sponsor->load('image'),
@@ -55,6 +69,15 @@ class SponsorController extends Controller
     public function update(UpdateSponsorRequest $request, int $sponsor): JsonResponse
     {
         $sponsorModel = Sponsor::query()->findOrFail($sponsor);
+        $oldValues = $sponsorModel->only([
+            'name',
+            'destination_url',
+            'image_media_id',
+            'placement',
+            'status',
+            'starts_at',
+            'ends_at',
+        ]);
         $data = $request->validated();
 
         $sponsorModel->update([
@@ -67,16 +90,52 @@ class SponsorController extends Controller
             'ends_at' => $data['ends_at'] ?? null,
         ]);
 
+        $sponsorModel = $sponsorModel->fresh();
+
+        $this->auditLog->record(
+            $request,
+            'sponsor.updated',
+            $sponsorModel,
+            metadata: ['name' => $sponsorModel->name, 'placement' => $sponsorModel->placement],
+            oldValues: $oldValues,
+            newValues: $sponsorModel->only([
+                'name',
+                'destination_url',
+                'image_media_id',
+                'placement',
+                'status',
+                'starts_at',
+                'ends_at',
+            ]),
+        );
+
         return response()->json([
             'message' => 'Patrocinador atualizado com sucesso.',
-            'data' => $sponsorModel->fresh()->load('image'),
+            'data' => $sponsorModel->load('image'),
         ]);
     }
 
-    public function destroy(int $sponsor): JsonResponse
+    public function destroy(Request $request, int $sponsor): JsonResponse
     {
         $sponsorModel = Sponsor::query()->findOrFail($sponsor);
+        $oldValues = $sponsorModel->only([
+            'name',
+            'destination_url',
+            'image_media_id',
+            'placement',
+            'status',
+            'starts_at',
+            'ends_at',
+        ]);
         $sponsorModel->delete();
+
+        $this->auditLog->record(
+            $request,
+            'sponsor.deleted',
+            $sponsorModel,
+            metadata: ['name' => $oldValues['name'] ?? null, 'placement' => $oldValues['placement'] ?? null],
+            oldValues: $oldValues,
+        );
 
         return response()->json([
             'message' => 'Patrocinador removido com sucesso.',

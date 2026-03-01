@@ -63,4 +63,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class, 'reviewed_by');
     }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
+    }
 }

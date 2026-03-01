@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StorePostRequest;
 use App\Http\Requests\Admin\UpdatePostRequest;
 use App\Models\Post;
+use App\Services\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
+    public function __construct(private readonly AuditLogService $auditLog)
+    {
+    }
+
     public function index(Request $request): JsonResponse
     {
         $posts = Post::query()
@@ -44,6 +49,14 @@ class PostController extends Controller
             'cover_media_id' => $data['cover_media_id'] ?? null,
         ]);
 
+        $this->auditLog->record(
+            $request,
+            'post.created',
+            $post,
+            metadata: ['title' => $post->title, 'status' => $post->status],
+            newValues: $post->toArray(),
+        );
+
         return response()->json([
             'message' => 'Notícia criada com sucesso.',
             'data' => $post->load(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia']),
@@ -64,6 +77,16 @@ class PostController extends Controller
     public function update(UpdatePostRequest $request, int $post): JsonResponse
     {
         $postModel = Post::query()->findOrFail($post);
+        $oldValues = $postModel->only([
+            'title',
+            'subtitle',
+            'slug',
+            'status',
+            'published_at',
+            'scheduled_at',
+            'category_id',
+            'cover_media_id',
+        ]);
         $data = $request->validated();
         $status = $data['status'] ?? $postModel->status;
 
@@ -79,25 +102,65 @@ class PostController extends Controller
             'cover_media_id' => $data['cover_media_id'] ?? null,
         ]);
 
+        $postModel = $postModel->fresh();
+
+        $this->auditLog->record(
+            $request,
+            'post.updated',
+            $postModel,
+            metadata: ['title' => $postModel->title, 'status' => $postModel->status],
+            oldValues: $oldValues,
+            newValues: $postModel->only([
+                'title',
+                'subtitle',
+                'slug',
+                'status',
+                'published_at',
+                'scheduled_at',
+                'category_id',
+                'cover_media_id',
+            ]),
+        );
+
         return response()->json([
             'message' => 'Notícia atualizada com sucesso.',
-            'data' => $postModel->fresh()->load(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia']),
+            'data' => $postModel->load(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia']),
         ]);
     }
 
-    public function destroy(int $post): JsonResponse
+    public function destroy(Request $request, int $post): JsonResponse
     {
         $postModel = Post::query()->findOrFail($post);
+        $oldValues = $postModel->only([
+            'title',
+            'subtitle',
+            'slug',
+            'status',
+            'published_at',
+            'scheduled_at',
+            'category_id',
+            'cover_media_id',
+        ]);
+
         $postModel->delete();
+
+        $this->auditLog->record(
+            $request,
+            'post.deleted',
+            $postModel,
+            metadata: ['title' => $oldValues['title'] ?? null],
+            oldValues: $oldValues,
+        );
 
         return response()->json([
             'message' => 'Notícia removida com sucesso.',
         ]);
     }
 
-    public function publish(int $post): JsonResponse
+    public function publish(Request $request, int $post): JsonResponse
     {
         $postModel = Post::query()->findOrFail($post);
+        $oldValues = $postModel->only(['status', 'published_at', 'scheduled_at']);
 
         $postModel->update([
             'status' => 'published',
@@ -105,9 +168,20 @@ class PostController extends Controller
             'scheduled_at' => null,
         ]);
 
+        $postModel = $postModel->fresh();
+
+        $this->auditLog->record(
+            $request,
+            'post.published',
+            $postModel,
+            metadata: ['title' => $postModel->title],
+            oldValues: $oldValues,
+            newValues: $postModel->only(['status', 'published_at', 'scheduled_at']),
+        );
+
         return response()->json([
             'message' => 'Notícia publicada com sucesso.',
-            'data' => $postModel->fresh(),
+            'data' => $postModel,
         ]);
     }
 
@@ -118,6 +192,7 @@ class PostController extends Controller
         ]);
 
         $postModel = Post::query()->findOrFail($post);
+        $oldValues = $postModel->only(['status', 'published_at', 'scheduled_at']);
 
         $postModel->update([
             'status' => 'scheduled',
@@ -125,9 +200,20 @@ class PostController extends Controller
             'published_at' => null,
         ]);
 
+        $postModel = $postModel->fresh();
+
+        $this->auditLog->record(
+            $request,
+            'post.scheduled',
+            $postModel,
+            metadata: ['title' => $postModel->title],
+            oldValues: $oldValues,
+            newValues: $postModel->only(['status', 'published_at', 'scheduled_at']),
+        );
+
         return response()->json([
             'message' => 'Notícia agendada com sucesso.',
-            'data' => $postModel->fresh(),
+            'data' => $postModel,
         ]);
     }
 

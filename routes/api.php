@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
@@ -51,6 +52,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('/sponsors/{sponsor}', [AdminSponsorController::class, 'show']);
     Route::put('/sponsors/{sponsor}', [AdminSponsorController::class, 'update']);
     Route::delete('/sponsors/{sponsor}', [AdminSponsorController::class, 'destroy']);
+
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
 });
 
 Route::prefix('public')->group(function (): void {
