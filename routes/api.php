@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Public\CategoryController as PublicCategoryController;
+use App\Http\Controllers\Public\CommentController as PublicCommentController;
 use App\Http\Controllers\Public\PostController as PublicPostController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,11 +38,18 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('/categories/{category}', [AdminCategoryController::class, 'show']);
     Route::put('/categories/{category}', [AdminCategoryController::class, 'update']);
     Route::delete('/categories/{category}', [AdminCategoryController::class, 'destroy']);
+
+    Route::get('/comments', [AdminCommentController::class, 'index']);
+    Route::post('/comments/{comment}/approve', [AdminCommentController::class, 'approve']);
+    Route::post('/comments/{comment}/reject', [AdminCommentController::class, 'reject']);
+    Route::delete('/comments/{comment}', [AdminCommentController::class, 'destroy']);
 });
 
 Route::prefix('public')->group(function (): void {
     Route::get('/posts', [PublicPostController::class, 'index']);
     Route::get('/posts/{slug}', [PublicPostController::class, 'show']);
+    Route::get('/posts/{slug}/comments', [PublicCommentController::class, 'index']);
+    Route::post('/posts/{slug}/comments', [PublicCommentController::class, 'store']);
     Route::get('/categories', [PublicCategoryController::class, 'index']);
     Route::get('/categories/{slug}/posts', [PublicCategoryController::class, 'posts']);
 });

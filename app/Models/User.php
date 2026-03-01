@@ -58,4 +58,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Media::class, 'uploaded_by');
     }
+
+    public function reviewedComments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'reviewed_by');
+    }
 }
