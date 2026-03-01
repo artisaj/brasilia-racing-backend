@@ -17,6 +17,8 @@ class StoreCategoryRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:categories,slug'],
             'description' => ['nullable', 'string', 'max:255'],
+            'show_in_navbar' => ['nullable', 'boolean'],
+            'navbar_order' => ['nullable', 'integer', 'min:0', 'max:999'],
         ];
     }
 }

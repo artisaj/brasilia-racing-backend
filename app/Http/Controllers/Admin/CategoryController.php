@@ -16,6 +16,8 @@ class CategoryController extends Controller
     {
         $categories = Category::query()
             ->withCount('posts')
+            ->orderByDesc('show_in_navbar')
+            ->orderBy('navbar_order')
             ->orderBy('name')
             ->get();
 
@@ -32,6 +34,8 @@ class CategoryController extends Controller
             'name' => $data['name'],
             'slug' => $this->resolveUniqueSlug($data['slug'] ?? $data['name']),
             'description' => $data['description'] ?? null,
+            'show_in_navbar' => (bool) ($data['show_in_navbar'] ?? false),
+            'navbar_order' => (int) ($data['navbar_order'] ?? 0),
         ]);
 
         return response()->json([
@@ -58,6 +62,8 @@ class CategoryController extends Controller
             'name' => $data['name'],
             'slug' => $this->resolveUniqueSlug($data['slug'] ?? $data['name'], $categoryModel->id),
             'description' => $data['description'] ?? null,
+            'show_in_navbar' => (bool) ($data['show_in_navbar'] ?? false),
+            'navbar_order' => (int) ($data['navbar_order'] ?? 0),
         ]);
 
         return response()->json([

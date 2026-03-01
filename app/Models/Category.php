@@ -14,7 +14,17 @@ class Category extends Model
         'name',
         'slug',
         'description',
+        'show_in_navbar',
+        'navbar_order',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'show_in_navbar' => 'boolean',
+            'navbar_order' => 'integer',
+        ];
+    }
 
     public function posts(): HasMany
     {

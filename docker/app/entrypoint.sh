@@ -10,5 +10,6 @@ if [ ! -d vendor ]; then
 fi
 
 php artisan key:generate --force || true
+php artisan storage:link || true
 
 exec "$@"

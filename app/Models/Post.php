@@ -19,6 +19,8 @@ class Post extends Model
         'slug',
         'content',
         'status',
+        'is_featured',
+        'featured_order',
         'published_at',
         'scheduled_at',
         'author_id',
@@ -29,6 +31,8 @@ class Post extends Model
     protected function casts(): array
     {
         return [
+            'is_featured' => 'boolean',
+            'featured_order' => 'integer',
             'published_at' => 'datetime',
             'scheduled_at' => 'datetime',
         ];

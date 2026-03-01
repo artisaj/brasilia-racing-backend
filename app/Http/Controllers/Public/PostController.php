@@ -8,6 +8,23 @@ use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
 {
+    public function featured(): JsonResponse
+    {
+        $featuredPosts = Post::query()
+            ->with(['category:id,name,slug', 'coverMedia'])
+            ->published()
+            ->where('is_featured', true)
+            ->orderByRaw('featured_order is null')
+            ->orderBy('featured_order')
+            ->latest('updated_at')
+            ->limit(8)
+            ->get();
+
+        return response()->json([
+            'data' => $featuredPosts,
+        ]);
+    }
+
     public function index(): JsonResponse
     {
         $posts = Post::query()

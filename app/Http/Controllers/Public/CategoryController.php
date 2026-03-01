@@ -12,6 +12,8 @@ class CategoryController extends Controller
     public function index(): JsonResponse
     {
         $categories = Category::query()
+            ->where('show_in_navbar', true)
+            ->orderBy('navbar_order')
             ->orderBy('name')
             ->get();
 
@@ -25,6 +27,7 @@ class CategoryController extends Controller
         $category = Category::query()->where('slug', $slug)->firstOrFail();
 
         $posts = Post::query()
+            ->with(['category:id,name,slug', 'coverMedia'])
             ->published()
             ->where('category_id', $category->id)
             ->latest('published_at')

@@ -31,6 +31,113 @@ class PostController extends Controller
         return response()->json($posts);
     }
 
+    public function featured(): JsonResponse
+    {
+        $posts = Post::query()
+            ->with(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia'])
+            ->where('is_featured', true)
+            ->orderByRaw('featured_order is null')
+            ->orderBy('featured_order')
+            ->latest('updated_at')
+            ->get();
+
+        return response()->json([
+            'data' => $posts,
+        ]);
+    }
+
+    public function reorderFeatured(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'post_ids' => ['required', 'array', 'min:1'],
+            'post_ids.*' => ['integer', 'distinct', 'exists:posts,id'],
+        ]);
+
+        $postIds = array_values($validated['post_ids']);
+
+        $featuredIds = Post::query()
+            ->whereIn('id', $postIds)
+            ->where('is_featured', true)
+            ->pluck('id')
+            ->all();
+
+        if (count($featuredIds) !== count($postIds)) {
+            return response()->json([
+                'message' => 'A reordenação aceita apenas notícias atualmente em destaque.',
+            ], 422);
+        }
+
+        foreach ($postIds as $index => $postId) {
+            Post::query()->where('id', $postId)->update([
+                'featured_order' => $index + 1,
+            ]);
+        }
+
+        $orderedPosts = Post::query()
+            ->with(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia'])
+            ->whereIn('id', $postIds)
+            ->orderByRaw('featured_order is null')
+            ->orderBy('featured_order')
+            ->get();
+
+        return response()->json([
+            'message' => 'Ordem dos destaques atualizada com sucesso.',
+            'data' => $orderedPosts,
+        ]);
+    }
+
+    public function feature(Request $request, int $post): JsonResponse
+    {
+        $postModel = Post::query()->findOrFail($post);
+
+        $nextFeaturedOrder = ((int) Post::query()->where('is_featured', true)->max('featured_order')) + 1;
+
+        $postModel->update([
+            'is_featured' => true,
+            'featured_order' => $postModel->featured_order ?? $nextFeaturedOrder,
+        ]);
+
+        $postModel = $postModel->fresh();
+
+        $this->auditLog->record(
+            $request,
+            'post.featured',
+            $postModel,
+            metadata: ['title' => $postModel->title],
+            newValues: ['is_featured' => true, 'featured_order' => $postModel->featured_order],
+        );
+
+        return response()->json([
+            'message' => 'Notícia definida como destaque.',
+            'data' => $postModel,
+        ]);
+    }
+
+    public function unfeature(Request $request, int $post): JsonResponse
+    {
+        $postModel = Post::query()->findOrFail($post);
+
+        $postModel->update([
+            'is_featured' => false,
+            'featured_order' => null,
+        ]);
+
+        $postModel = $postModel->fresh();
+
+        $this->auditLog->record(
+            $request,
+            'post.unfeatured',
+            $postModel,
+            metadata: ['title' => $postModel->title],
+            newValues: ['is_featured' => false, 'featured_order' => null],
+        );
+
+        return response()->json([
+            'message' => 'Destaque removido com sucesso.',
+            'data' => $postModel,
+        ]);
+    }
+
     public function store(StorePostRequest $request): JsonResponse
     {
         $data = $request->validated();

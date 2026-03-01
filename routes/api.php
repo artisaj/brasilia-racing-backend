@@ -13,7 +13,7 @@ use App\Http\Controllers\Public\PostController as PublicPostController;
 use App\Http\Controllers\Public\SponsorController as PublicSponsorController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin/auth')->group(function (): void {
+Route::prefix('admin/auth')->middleware('web')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
 
     Route::middleware(['auth:sanctum', 'role:admin,redator'])->group(function (): void {
@@ -28,6 +28,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,redator'])->grou
     Route::get('/posts/{post}', [AdminPostController::class, 'show']);
     Route::put('/posts/{post}', [AdminPostController::class, 'update']);
     Route::delete('/posts/{post}', [AdminPostController::class, 'destroy']);
+    Route::get('/posts/featured/list', [AdminPostController::class, 'featured']);
+    Route::post('/posts/featured/reorder', [AdminPostController::class, 'reorderFeatured']);
+    Route::post('/posts/{post}/feature', [AdminPostController::class, 'feature']);
+    Route::post('/posts/{post}/unfeature', [AdminPostController::class, 'unfeature']);
     Route::post('/posts/{post}/publish', [AdminPostController::class, 'publish']);
     Route::post('/posts/{post}/schedule', [AdminPostController::class, 'schedule']);
 
@@ -57,6 +61,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 });
 
 Route::prefix('public')->group(function (): void {
+    Route::get('/posts/featured', [PublicPostController::class, 'featured']);
     Route::get('/posts', [PublicPostController::class, 'index']);
     Route::get('/posts/{slug}', [PublicPostController::class, 'show']);
     Route::get('/posts/{slug}/comments', [PublicCommentController::class, 'index']);
