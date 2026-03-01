@@ -8,7 +8,12 @@ use Illuminate\Support\Str;
 
 class ImageVariantService
 {
-    private const DISK = 'public';
+    private string $disk;
+
+    public function __construct()
+    {
+        $this->disk = (string) config('filesystems.media_disk', config('filesystems.default', 'public'));
+    }
 
     public function processAndStore(UploadedFile $file): array
     {
@@ -54,7 +59,7 @@ class ImageVariantService
         imagedestroy($image);
 
         return [
-            'disk' => self::DISK,
+            'disk' => $this->disk,
             'original_path' => $originalPath,
             'thumb_path' => $thumbPath,
             'card_path' => $cardPath,
@@ -71,7 +76,7 @@ class ImageVariantService
         $filename = 'original.'.$extension;
         $path = $baseDir.'/'.$filename;
 
-        Storage::disk(self::DISK)->putFileAs($baseDir, $file, $filename);
+        Storage::disk($this->disk)->putFileAs($baseDir, $file, $filename);
 
         return $path;
     }
@@ -143,6 +148,6 @@ class ImageVariantService
             abort(500, 'Falha ao processar variação de imagem.');
         }
 
-        Storage::disk(self::DISK)->put($path, $binary);
+        Storage::disk($this->disk)->put($path, $binary);
     }
 }

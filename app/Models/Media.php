@@ -44,26 +44,39 @@ class Media extends Model
 
     public function getOriginalUrlAttribute(): string
     {
-        return Storage::disk($this->disk)->url($this->original_path);
+        return $this->resolveUrl($this->original_path);
     }
 
     public function getThumbUrlAttribute(): string
     {
-        return Storage::disk($this->disk)->url($this->thumb_path);
+        return $this->resolveUrl($this->thumb_path);
     }
 
     public function getCardUrlAttribute(): string
     {
-        return Storage::disk($this->disk)->url($this->card_path);
+        return $this->resolveUrl($this->card_path);
     }
 
     public function getHeroUrlAttribute(): string
     {
-        return Storage::disk($this->disk)->url($this->hero_path);
+        return $this->resolveUrl($this->hero_path);
     }
 
     public function getFullUrlAttribute(): string
     {
-        return Storage::disk($this->disk)->url($this->full_path);
+        return $this->resolveUrl($this->full_path);
+    }
+
+    private function resolveUrl(string $path): string
+    {
+        $disk = Storage::disk($this->disk);
+
+        $resolved = $disk->url($path);
+
+        if (str_starts_with($resolved, 'http://') || str_starts_with($resolved, 'https://')) {
+            return $resolved;
+        }
+
+        return '/'.ltrim($resolved, '/');
     }
 }
