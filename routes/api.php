@@ -5,9 +5,11 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
+use App\Http\Controllers\Admin\SponsorController as AdminSponsorController;
 use App\Http\Controllers\Public\CategoryController as PublicCategoryController;
 use App\Http\Controllers\Public\CommentController as PublicCommentController;
 use App\Http\Controllers\Public\PostController as PublicPostController;
+use App\Http\Controllers\Public\SponsorController as PublicSponsorController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/auth')->group(function (): void {
@@ -43,6 +45,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::post('/comments/{comment}/approve', [AdminCommentController::class, 'approve']);
     Route::post('/comments/{comment}/reject', [AdminCommentController::class, 'reject']);
     Route::delete('/comments/{comment}', [AdminCommentController::class, 'destroy']);
+
+    Route::get('/sponsors', [AdminSponsorController::class, 'index']);
+    Route::post('/sponsors', [AdminSponsorController::class, 'store']);
+    Route::get('/sponsors/{sponsor}', [AdminSponsorController::class, 'show']);
+    Route::put('/sponsors/{sponsor}', [AdminSponsorController::class, 'update']);
+    Route::delete('/sponsors/{sponsor}', [AdminSponsorController::class, 'destroy']);
 });
 
 Route::prefix('public')->group(function (): void {
@@ -50,6 +58,7 @@ Route::prefix('public')->group(function (): void {
     Route::get('/posts/{slug}', [PublicPostController::class, 'show']);
     Route::get('/posts/{slug}/comments', [PublicCommentController::class, 'index']);
     Route::post('/posts/{slug}/comments', [PublicCommentController::class, 'store']);
+    Route::get('/sponsors', [PublicSponsorController::class, 'index']);
     Route::get('/categories', [PublicCategoryController::class, 'index']);
     Route::get('/categories/{slug}/posts', [PublicCategoryController::class, 'posts']);
 });
