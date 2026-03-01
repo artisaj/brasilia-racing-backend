@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('published_at')->nullable();
             $table->timestamp('scheduled_at')->nullable();
             $table->foreignId('author_id')->constrained('users')->cascadeOnUpdate()->restrictOnDelete();
-            $table->unsignedBigInteger('category_id')->nullable();
+            $table->foreignId('category_id')->nullable()->constrained('categories')->cascadeOnUpdate()->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 

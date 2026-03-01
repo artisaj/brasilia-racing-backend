@@ -15,7 +15,7 @@ class PostController extends Controller
     public function index(Request $request): JsonResponse
     {
         $posts = Post::query()
-            ->with('author:id,name,email,role')
+            ->with(['author:id,name,email,role', 'category:id,name,slug'])
             ->when(
                 $request->filled('status'),
                 fn ($query) => $query->where('status', $request->string('status'))
@@ -45,14 +45,14 @@ class PostController extends Controller
 
         return response()->json([
             'message' => 'Notícia criada com sucesso.',
-            'data' => $post->load('author:id,name,email,role'),
+            'data' => $post->load(['author:id,name,email,role', 'category:id,name,slug']),
         ], 201);
     }
 
     public function show(int $post): JsonResponse
     {
         $postModel = Post::query()
-            ->with('author:id,name,email,role')
+            ->with(['author:id,name,email,role', 'category:id,name,slug'])
             ->findOrFail($post);
 
         return response()->json([
@@ -79,7 +79,7 @@ class PostController extends Controller
 
         return response()->json([
             'message' => 'Notícia atualizada com sucesso.',
-            'data' => $postModel->fresh()->load('author:id,name,email,role'),
+            'data' => $postModel->fresh()->load(['author:id,name,email,role', 'category:id,name,slug']),
         ]);
     }
 

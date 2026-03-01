@@ -37,6 +37,11 @@ class Post extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', 'published')

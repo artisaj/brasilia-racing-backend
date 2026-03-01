@@ -23,7 +23,7 @@ class UpdatePostRequest extends FormRequest
             'content' => ['required', 'string'],
             'status' => ['nullable', 'in:draft,in_review,published,scheduled'],
             'scheduled_at' => ['nullable', 'date'],
-            'category_id' => ['nullable', 'integer'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
         ];
     }
 }
