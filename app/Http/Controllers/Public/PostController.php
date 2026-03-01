@@ -11,6 +11,7 @@ class PostController extends Controller
     public function index(): JsonResponse
     {
         $posts = Post::query()
+            ->with(['category:id,name,slug', 'coverMedia'])
             ->published()
             ->latest('published_at')
             ->paginate(12);
@@ -21,6 +22,7 @@ class PostController extends Controller
     public function show(string $slug): JsonResponse
     {
         $post = Post::query()
+            ->with(['category:id,name,slug', 'coverMedia'])
             ->published()
             ->where('slug', $slug)
             ->firstOrFail();

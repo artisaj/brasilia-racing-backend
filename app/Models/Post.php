@@ -22,6 +22,7 @@ class Post extends Model
         'scheduled_at',
         'author_id',
         'category_id',
+        'cover_media_id',
     ];
 
     protected function casts(): array
@@ -40,6 +41,11 @@ class Post extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function coverMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'cover_media_id');
     }
 
     public function scopePublished(Builder $query): Builder

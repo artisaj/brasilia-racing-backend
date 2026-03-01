@@ -15,7 +15,7 @@ class PostController extends Controller
     public function index(Request $request): JsonResponse
     {
         $posts = Post::query()
-            ->with(['author:id,name,email,role', 'category:id,name,slug'])
+            ->with(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia'])
             ->when(
                 $request->filled('status'),
                 fn ($query) => $query->where('status', $request->string('status'))
@@ -41,18 +41,19 @@ class PostController extends Controller
             'scheduled_at' => $status === 'scheduled' ? ($data['scheduled_at'] ?? null) : null,
             'author_id' => $request->user()->id,
             'category_id' => $data['category_id'] ?? null,
+            'cover_media_id' => $data['cover_media_id'] ?? null,
         ]);
 
         return response()->json([
             'message' => 'Notícia criada com sucesso.',
-            'data' => $post->load(['author:id,name,email,role', 'category:id,name,slug']),
+            'data' => $post->load(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia']),
         ], 201);
     }
 
     public function show(int $post): JsonResponse
     {
         $postModel = Post::query()
-            ->with(['author:id,name,email,role', 'category:id,name,slug'])
+            ->with(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia'])
             ->findOrFail($post);
 
         return response()->json([
@@ -75,11 +76,12 @@ class PostController extends Controller
             'published_at' => $status === 'published' ? ($postModel->published_at ?? now()) : null,
             'scheduled_at' => $status === 'scheduled' ? ($data['scheduled_at'] ?? null) : null,
             'category_id' => $data['category_id'] ?? null,
+            'cover_media_id' => $data['cover_media_id'] ?? null,
         ]);
 
         return response()->json([
             'message' => 'Notícia atualizada com sucesso.',
-            'data' => $postModel->fresh()->load(['author:id,name,email,role', 'category:id,name,slug']),
+            'data' => $postModel->fresh()->load(['author:id,name,email,role', 'category:id,name,slug', 'coverMedia']),
         ]);
     }
 

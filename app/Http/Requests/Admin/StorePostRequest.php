@@ -21,6 +21,7 @@ class StorePostRequest extends FormRequest
             'status' => ['nullable', 'in:draft,in_review,published,scheduled'],
             'scheduled_at' => ['nullable', 'date'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'cover_media_id' => ['nullable', 'integer', 'exists:media,id'],
         ];
     }
 }

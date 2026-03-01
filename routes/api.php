@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Public\CategoryController as PublicCategoryController;
 use App\Http\Controllers\Public\PostController as PublicPostController;
@@ -24,6 +25,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,redator'])->grou
     Route::delete('/posts/{post}', [AdminPostController::class, 'destroy']);
     Route::post('/posts/{post}/publish', [AdminPostController::class, 'publish']);
     Route::post('/posts/{post}/schedule', [AdminPostController::class, 'schedule']);
+
+    Route::get('/media', [AdminMediaController::class, 'index']);
+    Route::post('/media/upload', [AdminMediaController::class, 'upload']);
 });
 
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
