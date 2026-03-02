@@ -26,6 +26,9 @@ class Post extends Model
         'author_id',
         'category_id',
         'cover_media_id',
+        'cover_focus_x',
+        'cover_focus_y',
+        'cover_zoom',
     ];
 
     protected function casts(): array
@@ -33,6 +36,9 @@ class Post extends Model
         return [
             'is_featured' => 'boolean',
             'featured_order' => 'integer',
+            'cover_focus_x' => 'integer',
+            'cover_focus_y' => 'integer',
+            'cover_zoom' => 'float',
             'published_at' => 'datetime',
             'scheduled_at' => 'datetime',
         ];

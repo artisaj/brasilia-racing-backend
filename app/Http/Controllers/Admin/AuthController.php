@@ -35,6 +35,16 @@ class AuthController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
 
+        if ($user->status !== 'active') {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'message' => 'Seu usuário está pendente ou inativo. Contate um administrador.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         return response()->json([
             'message' => 'Login realizado com sucesso.',
             'data' => [
@@ -42,6 +52,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'status' => $user->status,
             ],
         ]);
     }
@@ -56,6 +67,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'status' => $user->status,
             ],
         ]);
     }

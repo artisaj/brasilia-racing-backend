@@ -22,6 +22,9 @@ class StorePostRequest extends FormRequest
             'scheduled_at' => ['nullable', 'date'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'cover_media_id' => ['nullable', 'integer', 'exists:media,id'],
+            'cover_focus_x' => ['nullable', 'integer', 'between:0,100'],
+            'cover_focus_y' => ['nullable', 'integer', 'between:0,100'],
+            'cover_zoom' => ['nullable', 'numeric', 'between:0.5,2'],
         ];
     }
 }

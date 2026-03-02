@@ -6,7 +6,9 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CommentController as AdminCommentController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\SponsorController as AdminSponsorController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Public\CategoryController as PublicCategoryController;
 use App\Http\Controllers\Public\CommentController as PublicCommentController;
 use App\Http\Controllers\Public\PostController as PublicPostController;
@@ -37,6 +39,9 @@ Route::prefix('admin')->middleware(['web', 'auth', 'role:admin,redator'])->group
 
     Route::get('/media', [AdminMediaController::class, 'index']);
     Route::post('/media/upload', [AdminMediaController::class, 'upload']);
+
+    Route::get('/profile', [AdminProfileController::class, 'show']);
+    Route::put('/profile/password', [AdminProfileController::class, 'updatePassword']);
 });
 
 Route::prefix('admin')->middleware(['web', 'auth', 'role:admin'])->group(function (): void {
@@ -58,6 +63,12 @@ Route::prefix('admin')->middleware(['web', 'auth', 'role:admin'])->group(functio
     Route::delete('/sponsors/{sponsor}', [AdminSponsorController::class, 'destroy']);
 
     Route::get('/audit-logs', [AuditLogController::class, 'index']);
+
+    Route::get('/users', [AdminUserController::class, 'index']);
+    Route::post('/users', [AdminUserController::class, 'store']);
+    Route::put('/users/{user}', [AdminUserController::class, 'update']);
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy']);
+    Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus']);
 });
 
 Route::prefix('public')->group(function (): void {

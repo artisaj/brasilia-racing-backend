@@ -88,13 +88,42 @@ class PostController extends Controller
 
     public function feature(Request $request, int $post): JsonResponse
     {
+        $data = $request->validate([
+            'cover_focus_x' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'cover_focus_y' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'cover_zoom' => ['nullable', 'numeric', 'min:0.5', 'max:2'],
+        ]);
+
+        $normalizedFocusX = array_key_exists('cover_focus_x', $data)
+            ? max(0, min(100, (int) round((float) $data['cover_focus_x'])))
+            : null;
+        $normalizedFocusY = array_key_exists('cover_focus_y', $data)
+            ? max(0, min(100, (int) round((float) $data['cover_focus_y'])))
+            : null;
+        $normalizedZoom = array_key_exists('cover_zoom', $data)
+            ? max(0.5, min(2.0, round((float) $data['cover_zoom'], 2)))
+            : null;
+
         $postModel = Post::query()->findOrFail($post);
+
+        if (!$postModel->is_featured) {
+            $featuredCount = (int) Post::query()->where('is_featured', true)->count();
+
+            if ($featuredCount >= 5) {
+                return response()->json([
+                    'message' => 'Limite de 5 destaques atingido. Remova um destaque para adicionar outro.',
+                ], 422);
+            }
+        }
 
         $nextFeaturedOrder = ((int) Post::query()->where('is_featured', true)->max('featured_order')) + 1;
 
         $postModel->update([
             'is_featured' => true,
             'featured_order' => $postModel->featured_order ?? $nextFeaturedOrder,
+            'cover_focus_x' => $normalizedFocusX ?? $postModel->cover_focus_x,
+            'cover_focus_y' => $normalizedFocusY ?? $postModel->cover_focus_y,
+            'cover_zoom' => $normalizedZoom ?? $postModel->cover_zoom,
         ]);
 
         $postModel = $postModel->fresh();
@@ -104,7 +133,13 @@ class PostController extends Controller
             'post.featured',
             $postModel,
             metadata: ['title' => $postModel->title],
-            newValues: ['is_featured' => true, 'featured_order' => $postModel->featured_order],
+            newValues: [
+                'is_featured' => true,
+                'featured_order' => $postModel->featured_order,
+                'cover_focus_x' => $postModel->cover_focus_x,
+                'cover_focus_y' => $postModel->cover_focus_y,
+                'cover_zoom' => $postModel->cover_zoom,
+            ],
         );
 
         return response()->json([
@@ -154,6 +189,9 @@ class PostController extends Controller
             'author_id' => $request->user()->id,
             'category_id' => $data['category_id'] ?? null,
             'cover_media_id' => $data['cover_media_id'] ?? null,
+            'cover_focus_x' => $data['cover_focus_x'] ?? 50,
+            'cover_focus_y' => $data['cover_focus_y'] ?? 50,
+            'cover_zoom' => $data['cover_zoom'] ?? 1,
         ]);
 
         $this->auditLog->record(
@@ -193,6 +231,9 @@ class PostController extends Controller
             'scheduled_at',
             'category_id',
             'cover_media_id',
+            'cover_focus_x',
+            'cover_focus_y',
+            'cover_zoom',
         ]);
         $data = $request->validated();
         $status = $data['status'] ?? $postModel->status;
@@ -207,6 +248,9 @@ class PostController extends Controller
             'scheduled_at' => $status === 'scheduled' ? ($data['scheduled_at'] ?? null) : null,
             'category_id' => $data['category_id'] ?? null,
             'cover_media_id' => $data['cover_media_id'] ?? null,
+            'cover_focus_x' => $data['cover_focus_x'] ?? $postModel->cover_focus_x,
+            'cover_focus_y' => $data['cover_focus_y'] ?? $postModel->cover_focus_y,
+            'cover_zoom' => $data['cover_zoom'] ?? $postModel->cover_zoom,
         ]);
 
         $postModel = $postModel->fresh();
@@ -226,6 +270,9 @@ class PostController extends Controller
                 'scheduled_at',
                 'category_id',
                 'cover_media_id',
+                'cover_focus_x',
+                'cover_focus_y',
+                'cover_zoom',
             ]),
         );
 
@@ -247,6 +294,9 @@ class PostController extends Controller
             'scheduled_at',
             'category_id',
             'cover_media_id',
+            'cover_focus_x',
+            'cover_focus_y',
+            'cover_zoom',
         ]);
 
         $postModel->delete();

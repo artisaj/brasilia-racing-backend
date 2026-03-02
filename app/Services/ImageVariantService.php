@@ -42,9 +42,9 @@ class ImageVariantService
         $heroPath = $baseDir.'/hero.jpg';
         $fullPath = $baseDir.'/full.jpg';
 
-        $thumb = $this->resizeAndCrop($image, 320, 180);
-        $card = $this->resizeAndCrop($image, 640, 360);
-        $hero = $this->resizeAndCrop($image, 1280, 720);
+        $thumb = $this->resizeToContainCanvas($image, 320, 180);
+        $card = $this->resizeToContainCanvas($image, 640, 360);
+        $hero = $this->resizeToContainCanvas($image, 1280, 720);
         $full = $this->resizeToMaxWidth($image, 1920);
 
         $this->storeJpeg($thumb, $thumbPath, 88);
@@ -81,37 +81,33 @@ class ImageVariantService
         return $path;
     }
 
-    private function resizeAndCrop($source, int $targetWidth, int $targetHeight)
+    private function resizeToContainCanvas($source, int $targetWidth, int $targetHeight)
     {
         $sourceWidth = imagesx($source);
         $sourceHeight = imagesy($source);
-        $sourceRatio = $sourceWidth / $sourceHeight;
-        $targetRatio = $targetWidth / $targetHeight;
-
-        if ($sourceRatio > $targetRatio) {
-            $cropHeight = $sourceHeight;
-            $cropWidth = (int) round($sourceHeight * $targetRatio);
-            $srcX = (int) floor(($sourceWidth - $cropWidth) / 2);
-            $srcY = 0;
-        } else {
-            $cropWidth = $sourceWidth;
-            $cropHeight = (int) round($sourceWidth / $targetRatio);
-            $srcX = 0;
-            $srcY = (int) floor(($sourceHeight - $cropHeight) / 2);
-        }
 
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+
+        $background = imagecolorallocate($canvas, 16, 18, 22);
+        imagefill($canvas, 0, 0, $background);
+
+        $scale = min($targetWidth / $sourceWidth, $targetHeight / $sourceHeight);
+        $newWidth = max(1, (int) round($sourceWidth * $scale));
+        $newHeight = max(1, (int) round($sourceHeight * $scale));
+        $dstX = (int) floor(($targetWidth - $newWidth) / 2);
+        $dstY = (int) floor(($targetHeight - $newHeight) / 2);
+
         imagecopyresampled(
             $canvas,
             $source,
+            $dstX,
+            $dstY,
             0,
             0,
-            $srcX,
-            $srcY,
-            $targetWidth,
-            $targetHeight,
-            $cropWidth,
-            $cropHeight
+            $newWidth,
+            $newHeight,
+            $sourceWidth,
+            $sourceHeight
         );
 
         return $canvas;
