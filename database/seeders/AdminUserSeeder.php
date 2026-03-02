@@ -10,11 +10,15 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $adminEmail = (string) config('admin.email', 'admin@brasiliaracing.local');
+        $adminName = (string) config('admin.name', 'Admin Brasília Racing');
+        $adminPassword = (string) config('admin.password', 'admin123456');
+
         User::updateOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@brasiliaracing.local')],
+            ['email' => $adminEmail],
             [
-                'name' => env('ADMIN_NAME', 'Admin Brasília Racing'),
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'admin123456')),
+                'name' => $adminName,
+                'password' => Hash::make($adminPassword),
                 'role' => 'admin',
             ]
         );
