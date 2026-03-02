@@ -27,6 +27,7 @@ COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 
 COPY docker/app/entrypoint.sh /usr/local/bin/entrypoint
+COPY docker/app/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 RUN chmod +x /usr/local/bin/entrypoint
 
 ENTRYPOINT ["entrypoint"]

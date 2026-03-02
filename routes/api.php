@@ -16,13 +16,13 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('admin/auth')->middleware('web')->group(function (): void {
     Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
 
-    Route::middleware(['auth:sanctum', 'role:admin,redator'])->group(function (): void {
+    Route::middleware(['auth', 'role:admin,redator'])->group(function (): void {
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 });
 
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,redator'])->group(function (): void {
+Route::prefix('admin')->middleware(['web', 'auth', 'role:admin,redator'])->group(function (): void {
     Route::get('/posts', [AdminPostController::class, 'index']);
     Route::post('/posts', [AdminPostController::class, 'store']);
     Route::get('/posts/{post}', [AdminPostController::class, 'show']);
@@ -39,7 +39,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,redator'])->grou
     Route::post('/media/upload', [AdminMediaController::class, 'upload']);
 });
 
-Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function (): void {
+Route::prefix('admin')->middleware(['web', 'auth', 'role:admin'])->group(function (): void {
     Route::get('/categories', [AdminCategoryController::class, 'index']);
     Route::post('/categories', [AdminCategoryController::class, 'store']);
     Route::get('/categories/{category}', [AdminCategoryController::class, 'show']);

@@ -9,7 +9,9 @@ if [ ! -d vendor ]; then
   composer install --no-interaction --prefer-dist
 fi
 
-php artisan key:generate --force || true
+if ! grep -q '^APP_KEY=base64:' .env; then
+  php artisan key:generate --force || true
+fi
 php artisan storage:link || true
 
 exec "$@"
