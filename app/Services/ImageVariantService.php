@@ -42,10 +42,10 @@ class ImageVariantService
         $heroPath = $baseDir.'/hero.jpg';
         $fullPath = $baseDir.'/full.jpg';
 
-        $thumb = $this->resizeToContainCanvas($image, 320, 180);
-        $card = $this->resizeToContainCanvas($image, 640, 360);
-        $hero = $this->resizeToContainCanvas($image, 1280, 720);
-        $full = $this->resizeToMaxWidth($image, 1920);
+        $thumb = $this->resizeToOrientationLimit($image, 480, 320, 320, 480);
+        $card = $this->resizeToOrientationLimit($image, 900, 660, 660, 900);
+        $hero = $this->resizeToOrientationLimit($image, 1920, 680, 680, 1920);
+        $full = $this->resizeToOrientationLimit($image, 1600, 1200, 1200, 1600);
 
         $this->storeJpeg($thumb, $thumbPath, 88);
         $this->storeJpeg($card, $cardPath, 88);
@@ -81,55 +81,33 @@ class ImageVariantService
         return $path;
     }
 
-    private function resizeToContainCanvas($source, int $targetWidth, int $targetHeight)
+    private function resizeToOrientationLimit($source, int $landscapeMaxWidth, int $landscapeMaxHeight, int $portraitMaxWidth, int $portraitMaxHeight)
     {
         $sourceWidth = imagesx($source);
         $sourceHeight = imagesy($source);
 
+        $isLandscape = $sourceWidth >= $sourceHeight;
+        $maxWidth = $isLandscape ? $landscapeMaxWidth : $portraitMaxWidth;
+        $maxHeight = $isLandscape ? $landscapeMaxHeight : $portraitMaxHeight;
+
+        $scale = min($maxWidth / $sourceWidth, $maxHeight / $sourceHeight, 1);
+        $targetWidth = (int) max(1, round($sourceWidth * $scale));
+        $targetHeight = (int) max(1, round($sourceHeight * $scale));
+
         $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-
-        $background = imagecolorallocate($canvas, 16, 18, 22);
-        imagefill($canvas, 0, 0, $background);
-
-        $scale = min($targetWidth / $sourceWidth, $targetHeight / $sourceHeight);
-        $newWidth = max(1, (int) round($sourceWidth * $scale));
-        $newHeight = max(1, (int) round($sourceHeight * $scale));
-        $dstX = (int) floor(($targetWidth - $newWidth) / 2);
-        $dstY = (int) floor(($targetHeight - $newHeight) / 2);
 
         imagecopyresampled(
             $canvas,
             $source,
-            $dstX,
-            $dstY,
             0,
             0,
-            $newWidth,
-            $newHeight,
+            0,
+            0,
+            $targetWidth,
+            $targetHeight,
             $sourceWidth,
             $sourceHeight
         );
-
-        return $canvas;
-    }
-
-    private function resizeToMaxWidth($source, int $maxWidth)
-    {
-        $sourceWidth = imagesx($source);
-        $sourceHeight = imagesy($source);
-
-        if ($sourceWidth <= $maxWidth) {
-            $copy = imagecreatetruecolor($sourceWidth, $sourceHeight);
-            imagecopy($copy, $source, 0, 0, 0, 0, $sourceWidth, $sourceHeight);
-
-            return $copy;
-        }
-
-        $newWidth = $maxWidth;
-        $newHeight = (int) round(($sourceHeight / $sourceWidth) * $newWidth);
-
-        $canvas = imagecreatetruecolor($newWidth, $newHeight);
-        imagecopyresampled($canvas, $source, 0, 0, 0, 0, $newWidth, $newHeight, $sourceWidth, $sourceHeight);
 
         return $canvas;
     }
